@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moov — Stretch Blocker</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/styles.css" />
+
+    <!-- TensorFlow.js + MoveNet (pose-detection) loaded as UMD globals:
+         window.tf and window.poseDetection. Classic scripts run before the
+         deferred ES-module below, so main.js can rely on both being present. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+
+    <script type="module" src="/src/main.js"></script>
+  </head>
+
+  <body>
+    <!-- ===================== ONBOARDING: first-run flow ===================== -->
+    <div id="onboarding-screen" class="screen">
+      <div class="ob-aurora"></div>
+      <div id="ob-confetti" class="ob-confetti"></div>
+
+      <div class="ob-shell">
+        <!-- Progress dots (built in JS) -->
+        <div id="ob-dots" class="ob-dots"></div>
+
+        <!-- STEP 0 — Welcome -->
+        <section class="ob-step" data-step="welcome">
+          <div class="ob-logo">
+            <span class="ob-logo-glyph">🧘</span>
+          </div>
+          <h1 class="ob-title">Meet Moov</h1>
+          <p class="ob-lede">
+            Your back has been waiting all day. Let's build a habit that actually
+            sticks — <strong>one real stretch at a time.</strong>
+          </p>
+          <div class="ob-actions">
+            <button class="ob-btn primary" data-ob-next>Let's go →</button>
+            <button class="ob-btn ghost" data-ob-skip>Skip intro</button>
+          </div>
+        </section>
+
+        <!-- STEP 1 — How it works -->
+        <section class="ob-step" data-step="how">
+          <h2 class="ob-title sm">Here's the deal</h2>
+          <div class="ob-cards">
+            <div class="ob-card" style="--i: 0">
+              <div class="ob-card-icon">⏰</div>
+              <h3 id="ob-interval-line">Every 30 minutes</h3>
+              <p>Moov takes over your screen so you can't "just finish this one thing."</p>
+            </div>
+            <div class="ob-card" style="--i: 1">
+              <div class="ob-card-icon">🧍</div>
+              <h3>Stand &amp; stretch</h3>
+              <p>Pick a back stretch and hold the pose. It only takes 10 seconds.</p>
+            </div>
+            <div class="ob-card" style="--i: 2">
+              <div class="ob-card-icon">📷</div>
+              <h3>Your camera checks</h3>
+              <p>On-device AI confirms you actually did it — no faking your way back to work.</p>
+            </div>
+          </div>
+          <div class="ob-actions">
+            <button class="ob-btn ghost" data-ob-back>Back</button>
+            <button class="ob-btn primary" data-ob-next>Makes sense →</button>
+          </div>
+        </section>
+
+        <!-- STEP 2 — Camera access -->
+        <section id="ob-step-camera" class="ob-step" data-step="camera">
+          <h2 class="ob-title sm">Turn on your camera</h2>
+          <div class="ob-cam-frame">
+            <video id="ob-cam-preview" autoplay playsinline muted></video>
+            <div class="ob-cam-placeholder">
+              <span>📷</span>
+            </div>
+            <div class="ob-cam-check">✓</div>
+          </div>
+          <p id="ob-cam-state" class="ob-cam-state">
+            Moov uses your camera only to check your form. It runs 100% on your
+            device and is never uploaded or recorded.
+          </p>
+          <div class="ob-actions">
+            <button class="ob-btn ghost" data-ob-back>Back</button>
+            <button id="ob-enable-cam" class="ob-btn primary">Enable camera</button>
+            <button class="ob-btn primary" data-ob-next>Continue →</button>
+          </div>
+        </section>
+
+        <!-- STEP 3 — Choose your go-to stretch -->
+        <section class="ob-step" data-step="stretch">
+          <h2 class="ob-title sm">Pick your go-to stretch</h2>
+          <p class="ob-lede sm">We'll make this your default — you can always switch mid-break.</p>
+          <div id="ob-stretch-cards" class="stretch-chooser"></div>
+          <div class="ob-actions">
+            <button class="ob-btn ghost" data-ob-back>Back</button>
+            <button class="ob-btn primary" data-ob-next>Try it live →</button>
+          </div>
+        </section>
+
+        <!-- STEP 4 — Live calibration -->
+        <section class="ob-step" data-step="calibrate">
+          <h2 class="ob-title sm">Let's do a quick rep</h2>
+          <p class="ob-lede sm">
+            Get in frame and do your <strong id="ob-cal-stretch-name">stretch</strong>.
+            Watch the ring fill!
+          </p>
+          <div id="ob-tracking-guide" class="tracking-guide compact"></div>
+          <div class="ob-cal-stage">
+            <div class="ob-cam-frame big">
+              <video id="ob-cal-video" autoplay playsinline muted></video>
+              <canvas id="ob-cal-overlay"></canvas>
+            </div>
+            <div class="ob-cal-ring-wrap">
+              <svg viewBox="0 0 130 130" class="ob-cal-ring">
+                <circle class="ob-cal-ring-bg" cx="65" cy="65" r="54" />
+                <circle id="ob-cal-ring-fill" class="ob-cal-ring-fill" cx="65" cy="65" r="54" />
+              </svg>
+              <div class="ob-cal-check">✓</div>
+            </div>
+          </div>
+          <p id="ob-cal-hint" class="pose-hint">Warming up…</p>
+          <div class="ob-actions">
+            <button class="ob-btn ghost" data-ob-back>Back</button>
+            <button class="ob-btn ghost" data-ob-next>Skip this</button>
+          </div>
+        </section>
+
+        <!-- STEP 5 — Done -->
+        <section class="ob-step" data-step="done">
+          <div class="ob-logo big">
+            <span class="ob-logo-glyph">🎉</span>
+          </div>
+          <h1 class="ob-title">You're all set!</h1>
+          <p class="ob-lede">
+            Moov is now watching the clock. Your first break is on its way —
+            your back is already grateful.
+          </p>
+          <div class="ob-actions">
+            <button class="ob-btn primary lg" data-ob-skip>Start protecting my back</button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ===================== IDLE: waiting for next break ===================== -->
+    <div id="idle-screen" class="screen active">
+      <div class="idle-container">
+        <div class="logo-ring">
+          <svg class="timer-ring" viewBox="0 0 200 200">
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#64D2FF" />
+                <stop offset="50%" stop-color="#5E5CE6" />
+                <stop offset="100%" stop-color="#BF5AF2" />
+              </linearGradient>
+            </defs>
+            <circle class="ring-bg" cx="100" cy="100" r="90" />
+            <circle id="ring-progress" class="ring-fill" cx="100" cy="100" r="90" />
+          </svg>
+          <div class="timer-inner">
+            <span class="timer-label">Next break in</span>
+            <span id="countdown-timer" class="timer-value">30:00</span>
+          </div>
+        </div>
+        <h1 class="app-title">Moov</h1>
+        <p class="app-subtitle">Your back will thank you ✨</p>
+        <button id="btn-test-lock" class="btn-subtle">Test stretch now</button>
+        <div class="idle-links">
+          <button id="btn-settings" class="btn-link">Settings</button>
+          <button id="btn-replay-onboarding" class="btn-link">Replay intro</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== SETTINGS ===================== -->
+    <div id="settings-screen" class="screen">
+      <div class="settings-panel">
+        <div class="settings-head">
+          <h1 class="settings-title">Settings</h1>
+          <button id="settings-close" class="settings-x" aria-label="Close settings">✕</button>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-label">
+            <h3>Break interval</h3>
+            <p>How often Moov takes over your screen.</p>
+          </div>
+          <div class="setting-control interval-control">
+            <div id="set-interval-chips" class="seg" role="group" aria-label="Break interval presets"></div>
+            <div class="interval-custom">
+              <input
+                id="set-interval"
+                class="num-input"
+                type="number"
+                min="1"
+                step="1"
+                aria-label="Break interval in minutes"
+              />
+              <span class="unit">min</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-label">
+            <h3>Difficulty</h3>
+            <p>One tap sets the reps for every exercise below.</p>
+          </div>
+          <div id="set-difficulty" class="seg" role="group" aria-label="Difficulty"></div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-label">
+            <h3>Exercises</h3>
+            <p>Turn each on or off and fine-tune its reps.</p>
+          </div>
+          <div id="set-exercises" class="ex-list"></div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-label">
+            <h3>Snooze length</h3>
+            <p>How far "Snooze" pushes the next break.</p>
+          </div>
+          <div id="set-snooze" class="seg" role="group" aria-label="Snooze length"></div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-label">
+            <h3>Default stretch</h3>
+            <p>Pre-selected when a break starts.</p>
+          </div>
+          <div id="set-stretch" class="seg" role="group" aria-label="Default stretch"></div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-label">
+            <h3>First-run intro</h3>
+            <p>Walk through onboarding again.</p>
+          </div>
+          <div class="setting-control">
+            <button id="set-replay" class="ob-btn ghost">Replay intro</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== LOCK: the 4-step stretch flow ===================== -->
+    <div id="lock-screen" class="screen">
+      <!-- Green success flash (step 4) -->
+      <div id="green-flash" class="green-flash"></div>
+
+      <!-- ---------- STEP 1 — THE INTERRUPTION ---------- -->
+      <section class="phase" data-phase="interruption">
+        <p class="kicker">Moov</p>
+        <h1 class="headline">Time for your back.<br />Stand up and step back.</h1>
+        <div class="interrupt-count">
+          <span id="interrupt-count">5</span>
+        </div>
+      </section>
+
+      <!-- ---------- STEP 2 — THE PROMPT ---------- -->
+      <section class="phase" data-phase="prompt">
+        <h2 id="prompt-title" class="headline sm">Pick your stretch</h2>
+        <p id="prompt-sub" class="subtle">Choose one to get started</p>
+
+        <div id="stretch-chooser" class="stretch-chooser"></div>
+
+        <p class="movement-safety">
+          Move gently and stay in a comfortable range. Stop if pain worsens, travels down a
+          leg, or you feel numbness, weakness, or dizziness.
+        </p>
+
+        <!-- Snooze escape hatch: choose how long, capped by remaining budget. -->
+        <div id="snooze-area" class="snooze-area">
+          <div id="snooze-options" class="snooze-options">
+            <span class="snooze-label">Can't right now? Snooze for</span>
+            <div id="snooze-chips" class="seg" role="group" aria-label="Snooze duration"></div>
+          </div>
+          <p id="snooze-blocked" class="snooze-blocked hidden">
+            You've snoozed enough for now — time to move. 💪
+          </p>
+        </div>
+      </section>
+
+      <!-- ---------- STEP 3 — THE CHALLENGE ---------- -->
+      <section class="phase" data-phase="challenge">
+        <h2 id="challenge-title" class="headline sm">Hold this position for 10 seconds</h2>
+        <div id="tracking-guide" class="tracking-guide"></div>
+        <!-- Three elements in a row: target stretch · your camera · countdown -->
+        <div class="challenge-body">
+          <figure class="challenge-col">
+            <img id="challenge-gif" class="challenge-gif" alt="Target stretch" />
+            <figcaption>Target</figcaption>
+          </figure>
+
+          <figure class="challenge-col">
+            <div class="cam-stage">
+              <video id="webcam" autoplay playsinline muted></video>
+              <canvas id="overlay"></canvas>
+            </div>
+            <figcaption>You</figcaption>
+          </figure>
+
+          <div class="progress-ring-wrap">
+            <svg class="progress-ring" viewBox="0 0 220 220">
+              <circle class="progress-ring-bg" cx="110" cy="110" r="100" />
+              <circle
+                id="progress-ring-fill"
+                class="progress-ring-fill"
+                cx="110"
+                cy="110"
+                r="100"
+              />
+            </svg>
+            <div class="progress-ring-label">
+              <span id="hold-remaining">10</span>
+              <small id="ring-unit">seconds</small>
+            </div>
+          </div>
+        </div>
+        <p id="pose-hint" class="pose-hint">Warming up the pose detector…</p>
+      </section>
+
+      <!-- ---------- STEP 4 — THE RELEASE ---------- -->
+      <section class="phase" data-phase="release">
+        <div class="release-emoji">🎉</div>
+        <h1 class="headline">Great job, back to work!</h1>
+      </section>
+    </div>
+  </body>
+</html>
