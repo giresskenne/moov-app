@@ -7,6 +7,14 @@ actually held a stretch — verified in real time with your webcam and
 [TensorFlow.js MoveNet](https://github.com/tensorflow/tfjs-models/tree/master/pose-detection)
 pose detection.
 
+## Built entirely with Codex & GPT-5.6
+
+Every part of Moov was created and refined using **Codex powered by GPT-5.6**.
+Codex and GPT-5.6 were used throughout the complete development process,
+including product planning, interface design, frontend implementation, Tauri and
+Rust integration, pose-detection logic, debugging, testing, documentation, and
+repository preparation.
+
 On multi-monitor desktops, the exercise and camera stay on the display where
 Moov is open while every other connected display receives a synchronized
 native always-on-top cover. All displays are released together after completion.
@@ -21,10 +29,9 @@ When the break window appears, it runs a 4-step sequence:
 
 1. **The Interruption** — camera off. Big text: _"Time for your back. Stand up
    and step back."_ with a 5-second countdown.
-2. **The Prompt** — pick one of six standing movements: Overhead Decompression,
-   Lumbar Extension, Standing Side Bend, Standing Hip Hinge, March in Place, or
-   Chest-Opening Arm Swings. The webcam fades in as a picture-in-picture so you
-   can frame yourself.
+2. **The Prompt** — pick one of the two currently enabled movements: Overhead
+   Decompression or Lumbar Extension. The webcam fades in as a picture-in-picture
+   so you can frame yourself.
 3. **The Challenge** — _"Hold this position for 10 seconds."_ MoveNet checks your
    pose (e.g. both wrists raised well above your eyes/shoulders for the overhead
    stretch). A circular progress ring fills only while a **valid** pose is held,
@@ -54,18 +61,44 @@ src/styles.css       # styling (SVG progress ring, PiP webcam, green flash)
 src-tauri/           # Rust backend: timer, tray, window lock/unlock commands
 ```
 
-## Getting started
+## Development setup
 
-Prerequisites: [Node.js](https://nodejs.org/), [Rust](https://www.rust-lang.org/tools/install),
-and the [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your OS.
+Install [Node.js](https://nodejs.org/), [Rust](https://www.rust-lang.org/tools/install),
+and the [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your operating
+system first. Confirm that the required tools are available:
 
 ```bash
-npm install
+node --version
+npm --version
+rustc --version
+cargo --version
+```
 
-# Run in development (hot reload; break timer fires every 15s for testing)
+Then clone the repository and install the exact dependency versions recorded in
+`package-lock.json`:
+
+```bash
+git clone git@github.com:giresskenne/moov-app.git
+cd moov-app
+npm ci
+```
+
+Once those commands finish successfully, start the complete Tauri development app:
+
+```bash
 npm run tauri dev
+```
 
-# Build a production desktop bundle (break timer every 30 min)
+This enables hot reload and sets the development break timer to 15 seconds for
+testing. To run only the browser frontend without the Tauri desktop backend, use:
+
+```bash
+npm run dev
+```
+
+To build a production desktop bundle instead, run:
+
+```bash
 npm run tauri build
 ```
 

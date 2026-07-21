@@ -80,7 +80,15 @@ test("arm opening recognizes hands together and a shoulder-height T", () => {
 });
 
 test("range evaluator requires two stable frames and a full reset per rep", () => {
-  const evaluator = new pose.RangeRepEvaluator(pose.STRETCHES.march, 2);
+  // March is currently commented out of STRETCHES, so exercise the reusable
+  // evaluator with the retained March pose primitives instead of enabling it.
+  const disabledMarchFixture = {
+    gate: pose.marchGate,
+    low: pose.marchFeetDown,
+    high: pose.marchKneeUp,
+    cue: "Lift one knee",
+  };
+  const evaluator = new pose.RangeRepEvaluator(disabledMarchFixture, 2);
   const start = frontPose();
   const lifted = frontPose();
   lifted.left_knee = p(120, 225);

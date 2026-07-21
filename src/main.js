@@ -105,7 +105,7 @@ const STRETCHES = {
   overhead: {
     gif: "https://cdn.jefit.com/assets/img/exercises/gifs/793.gif",
     name: "Overhead Decompression",
-    title: "Reach from waist to overhead ×{n}",
+    // title: "Reach from waist to overhead ×{n}", // Temporarily hidden from the exercise header.
     setup: "Face the camera, hands down at your waist",
     cue: "Reach both arms all the way up and push overhead",
     tracking: {
@@ -123,7 +123,7 @@ const STRETCHES = {
   lumbar: {
     gif: "https://media.post.rvohealth.io/wp-content/uploads/2020/11/Standing-extension.gif",
     name: "Lumbar Extension",
-    title: "Do {n} slow back extensions",
+    // title: "Do {n} slow back extensions", // Temporarily hidden from the exercise header.
     setup: "Turn side-on to the camera — match the picture",
     cue: "Hands on your lower back — gently lean back, then return",
     turnHint: "Turn to your side so I can see you lean",
@@ -140,6 +140,10 @@ const STRETCHES = {
     facing: lumbarFacing, // and the user must be side-on
     signal: lumbarSignal, // horizontal lean we watch oscillate
   },
+  /*
+  The exercises below are intentionally disabled for now. Their definitions and
+  pose-detection implementations are retained so they can be enabled again later.
+
   sidebend: {
     gif: "https://spotebi.com/wp-content/uploads/2016/02/standing-side-bend-exercise-illustration-spotebi.gif",
     name: "Standing Side Bend",
@@ -222,6 +226,7 @@ const STRETCHES = {
     low: armSwingClosed,
     high: armSwingOpen,
   },
+  */
 };
 
 // ---------- State ----------
@@ -300,13 +305,13 @@ async function init() {
     promptTitle: $("prompt-title"),
     promptSub: $("prompt-sub"),
     chooser: $("stretch-chooser"),
-    challengeTitle: $("challenge-title"),
+    // challengeTitle: $("challenge-title"), // Static header instructions are hidden for now.
     challengeGif: $("challenge-gif"),
     ringFill: $("progress-ring-fill"),
     holdRemaining: $("hold-remaining"),
     ringUnit: $("ring-unit"),
     poseHint: $("pose-hint"),
-    trackingGuide: $("tracking-guide"),
+    // trackingGuide: $("tracking-guide"), // Keep only the live guidance below the GIFs.
 
     webcam: $("webcam"),
     overlay: $("overlay"),
@@ -323,7 +328,7 @@ async function init() {
     obCalOverlay: $("ob-cal-overlay"),
     obCalRing: $("ob-cal-ring-fill"),
     obCalHint: $("ob-cal-hint"),
-    obTrackingGuide: $("ob-tracking-guide"),
+    // obTrackingGuide: $("ob-tracking-guide"), // Onboarding panel is hidden for now.
     obCalStretchName: $("ob-cal-stretch-name"),
     obConfetti: $("ob-confetti"),
     btnReplayOnboarding: $("btn-replay-onboarding"),
@@ -570,10 +575,10 @@ function chooseStretch(key, card) {
 
   const s = STRETCHES[key];
   el.challengeGif.src = s.gif;
-  renderTrackingGuide(el.trackingGuide, s);
+  // renderTrackingGuide(el.trackingGuide, s); // Static instructions above the GIFs are hidden.
   el.promptTitle.textContent = "Get ready to do this.";
-  // Lead with the setup instruction (e.g. "turn side-on") when there is one.
-  el.promptSub.textContent = s.setup ? `${s.name} — ${s.setup}` : s.name;
+  // Keep the chooser header free of instructions; live guidance appears below the GIFs.
+  el.promptSub.textContent = s.name;
 
   setTimeout(stepChallenge, GET_READY_MS);
 }
@@ -583,9 +588,9 @@ function stepChallenge() {
   showPhase("challenge");
   const s = STRETCHES[state.stretch];
   const reps = exReps(state.stretch);
-  el.challengeTitle.textContent = s.title.replace("{n}", String(reps));
+  // el.challengeTitle.textContent = s.title.replace("{n}", String(reps));
   el.challengeGif.src = s.gif;
-  renderTrackingGuide(el.trackingGuide, s);
+  // renderTrackingGuide(el.trackingGuide, s); // Keep only the live guidance below the GIFs.
 
   state.evaluator = makeEvaluator(state.stretch, { reps, holdMs: fallbackHoldMs(reps) });
   state.lastTick = now();
@@ -1521,7 +1526,7 @@ function obReflectStretchChoice() {
 function startCalibration() {
   const s = STRETCHES[state.obDefault];
   el.obCalStretchName.textContent = s.name;
-  renderTrackingGuide(el.obTrackingGuide, s);
+  // renderTrackingGuide(el.obTrackingGuide, s); // Onboarding panel is hidden for now.
   state.obEval = makeEvaluator(state.obDefault, { holdMs: CAL_HOLD_MS, reps: 2 });
   state.obLastTick = now();
   el.obCalRing.style.strokeDasharray = String(CAL_RING_CIRC);
